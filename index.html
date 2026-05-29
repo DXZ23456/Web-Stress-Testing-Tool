@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>增强版网页压力测试工具 - 支持10-200并发用户</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .config-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .config-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .config-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .config-card h3 i {
+            color: #3498db;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #34495e;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .range-value {
+            min-width: 60px;
+            padding: 5px 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #startBtn {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        #startBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #27ae60, #219653);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        #stopBtn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        #stopBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        #resetBtn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        #resetBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2980b9, #1c5a7a);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .progress-section {
+            margin: 30px 0;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .results-section {
+            margin-top: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #eaeaea;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
+        .warning { color: #f39c12; }
+        .info { color: #3498db; }
+        .primary { color: #9b59b6; }
+        
+        .result-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px;
+        }
+        
+        .result-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        
+        .result-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .warning-note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 6px;
+            color: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .config-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tachometer-alt"></i> 增强版网页压力测试工具</h1>
+            <p class="subtitle">支持10-200并发用户测试 | 专为短链接生成器设计 | 模拟高并发真实访问场景</p>
+        </header>
+        
+        <div class="warning-note">
+            <i class="fas fa-exclamation-triangle"></i> 
+            <strong>注意：</strong> 本工具模拟高并发访问（最高200用户），可能对目标服务器产生较大负载。请确保您有权测试目标网站，并了解可能的影响。建议在测试环境中使用。
+        </div>
+        
+        <div class="config-section">
+            <div class="config-card">
+                <h3><i class="fas fa-cog"></i> 压力测试配置</h3>
+                <div class="form-group">
+                    <label for="targetUrl"><i class="fas fa-link"></i> 目标网站URL</label>
+                    <!-- 这里改为空白 -->
+                    <input type="text" id="targetUrl" placeholder="输入要测试的网站地址">
+                </div>
+                <div class="form-group">
+                    <label for="userCount"><i class="fas fa-users"></i> 并发用户数 (10-200人)</label>
+                    <div class="range-container">
+                        <input type="range" id="userCount" min="10" max="200" value="50">
+                        <span class="range-value" id="userCountValue">50</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="testDuration"><i class="fas fa-clock"></i> 测试时长 (秒)</label>
+                    <input type="number" id="testDuration" min="10" max="600" value="120">
+                </div>
+                <div class="form-group">
+                    <label for="batchSize"><i class="fas fa-layer-group"></i> 批次大小 (每次启动用户数)</label>
+                    <input type="number" id="batchSize" min="1" max="50" value="10">
+                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">分批启动用户，避免浏览器性能问题</small>
+                </div>
+            </div>
+            
+            <div class="config-card">
+                <h3><i class="fas fa-sliders-h"></i> 高级请求设置</h3>
+                <div class="form-group">
+                    <label for="minDelay"><i class="fas fa-hourglass-start"></i> 最小延迟 (毫秒)</label>
+                    <input type="number" id="minDelay" min="100" max="5000" value="300">
+                </div>
+                <div class="form-group">
+                    <label for="maxDelay"><i class="fas fa-hourglass-end"></i> 最大延迟 (毫秒)</label>
+                    <input type="number" id="maxDelay" min="1000" max="15000" value="5000">
+                </div>
+                <div class="form-group">
+                    <label for="timeout"><i class="fas fa-stopwatch"></i> 请求超时 (毫秒)</label>
+                    <input type="number" id="timeout" min="1000" max="30000" value="10000">
+                </div>
+                <div class="form-group">
+                    <label for="apiEndpoint"><i class="fas fa-code"></i> API端点 (可选)</label>
+                    <select id="apiEndpoint">
+                        <option value="/">首页 (/)</option>
+                        <option value="/api/shorten">POST /api/shorten</option>
+                        <option value="/api/stats">GET /api/stats</option>
+                        <option value="/api/info/:code">GET /api/info/:code</option>
+                        <option value="/api/batch">POST /api/batch</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="config-card">
+                <h3><i class="fas fa-user-circle"></i> UserAgent设置</h3>
+                <div class="form-group">
+                    <label><i class="fas fa-desktop"></i> 设备类型分布</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 5px;">
+                        <label><input type="checkbox" id="desktop" checked> 桌面端</label>
+                        <label><input type="checkbox" id="mobile" checked> 移动端</label>
+                        <label><input type="checkbox" id="tablet" checked> 平板端</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-globe"></i> 浏览器分布</label>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 5px;">
+                        <label><input type="checkbox" id="chrome" checked> Chrome</label>
+                        <label><input type="checkbox" id="firefox" checked> Firefox</label>
+                        <label><input type="checkbox" id="safari" checked> Safari</label>
+                        <label><input type="checkbox" id="edge" checked> Edge</label>
+                        <label><input type="checkbox" id="opera" checked> Opera</label>
+                        <label><input type="checkbox" id="samsung" checked> Samsung Internet</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="customUserAgents"><i class="fas fa-edit"></i> 自定义UserAgent (每行一个)</label>
+                    <textarea id="customUserAgents" rows="4" placeholder="可在此添加自定义UserAgent，每行一个&#10;例如:&#10;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">
+                <i class="fas fa-play"></i> 开始压力测试
+            </button>
+            <button id="stopBtn" disabled>
+                <i class="fas fa-stop"></i> 停止测试
+            </button>
+            <button id="resetBtn">
+                <i class="fas fa-redo"></i> 重置数据
+            </button>
+        </div>
+        
+        <div class="progress-section">
+            <h3><i class="fas fa-chart-line"></i> 测试进度</h3>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-info">
+                    <span>测试进度: <span id="progressText">0%</span></span>
+                    <span>已运行: <span id="elapsedTime">0s</span> / <span id="totalTime">120s</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-section">
+            <h2><i class="fas fa-chart-bar"></i> 测试结果统计</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div><i class="fas fa-check-circle success"></i></div>
+                    <div class="stat-value success" id="successCount">0</div>
+                    <div>成功请求数</div>
+                </div>
+                <div class="stat-card">
+                    <div><i class="fas fa-times-circle error"></i></div>
+                    <div class="stat-value error" id="errorCount">0</div>
+                    <div>失败请求数</div>
+                </div>
+                <div class="stat-card">
+                    <div><i class="fas fa-bolt warning"></i></div>
+                    <div class="stat-value warning" id="avgResponseTime">0ms</div>
+                    <div>平均响应时间</div>
+                </div>
+                <div class="stat-card">
+                    <div><i class="fas fa-users info"></i></div>
+                    <div class="stat-value info" id="activeUsers">0</div>
+                    <div>活跃用户数</div>
+                </div>
+                <div class="stat-card">
+                    <div><i class="fas fa-percentage primary"></i></div>
+                    <div class="stat-value primary" id="successRate">0%</div>
+                    <div>成功率</div>
+                </div>
+                <div class="stat-card">
+                    <div><i class="fas fa-exchange-alt primary"></i></div>
+                    <div class="stat-value primary" id="totalRequests">0</div>
+                    <div>总请求数</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3><i class="fas fa-chart-area"></i> 实时请求速率 (请求数/分钟)</h3>
+                <div class="chart-placeholder" id="requestsChart">
+                    <div style="text-align: center;">
+                        <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                        <p>测试开始后显示实时请求速率图表</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="resultsContainer">
+                <h3><i class="fas fa-list"></i> 请求详情</h3>
+                <div class="loading" id="loadingIndicator" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>正在执行压力测试，模拟 <span id="currentUsers">0</span> 个并发用户...</p>
+                </div>
+                
+                <div class="result-table-container">
+                    <table class="result-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>用户ID</th>
+                                <th>状态</th>
+                                <th>响应时间</th>
+                                <th>UserAgent</th>
+                                <th>响应码/错误</th>
+                                <th>时间戳</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <!-- 结果将动态插入到这里 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><i class="fas fa-info-circle"></i> 增强版压力测试工具 v2.0 | 支持10-200并发用户 | 专为短链接生成器设计 | 模拟真实高并发场景</p>
+            <p>注意：本工具为前端实现，实际并发数受浏览器限制。建议在强大硬件上运行以获得最佳效果。</p>
+        </div>
+    </div>
+
+    <script>
+        // 增强版UserAgent列表
+        const defaultUserAgents = {
+            desktop: [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0',
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0'
+            ],
+            mobile: [
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+                'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 13; SM-A736B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 13; 2201116SG) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 13; SM-F946B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Mobile Safari/537.36'
+            ],
+            tablet: [
+                'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+                'Mozilla/5.0 (Linux; Android 13; SM-X916B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 12; Lenovo TB-X606F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 13; SM-X810) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Safari/537.36',
+                'Mozilla/5.0 (Linux; Android 13; SM-P613) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.210 Safari/537.36'
+            ]
+        };
+
+        // 状态变量
+        let isTesting = false;
+        let activeUsers = 0;
+        let successCount = 0;
+        let errorCount = 0;
+        let totalResponseTime = 0;
+        let testStartTime = 0;
+        let testTimeout = null;
+        let progressInterval = null;
+        let activeRequests = [];
+        let requestResults = [];
+        let requestTimestamps = [];
+        let userTasks = [];
+        
+        // DOM元素
+        const userCountSlider = document.getElementById('userCount');
+        const userCountValue = document.getElementById('userCountValue');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const targetUrlInput = document.getElementById('targetUrl');
+        const testDurationInput = document.getElementById('testDuration');
+        const minDelayInput = document.getElementById('minDelay');
+        const maxDelayInput = document.getElementById('maxDelay');
+        const timeoutInput = document.getElementById('timeout');
+        const batchSizeInput = document.getElementById('batchSize');
+        const apiEndpointSelect = document.getElementById('apiEndpoint');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const elapsedTimeEl = document.getElementById('elapsedTime');
+        const totalTimeEl = document.getElementById('totalTime');
+        const successCountEl = document.getElementById('successCount');
+        const errorCountEl = document.getElementById('errorCount');
+        const avgResponseTimeEl = document.getElementById('avgResponseTime');
+        const activeUsersEl = document.getElementById('activeUsers');
+        const successRateEl = document.getElementById('successRate');
+        const totalRequestsEl = document.getElementById('totalRequests');
+        const currentUsersEl = document.getElementById('currentUsers');
+        const resultsBody = document.getElementById('resultsBody');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const customUserAgentsTextarea = document.getElementById('customUserAgents');
+        const requestsChart = document.getElementById('requestsChart');
+        
+        // 初始化
+        function init() {
+            // 更新滑块值显示
+            userCountSlider.addEventListener('input', function() {
+                userCountValue.textContent = this.value;
+                currentUsersEl.textContent = this.value;
+            });
+            
+            // 设置默认值
+            currentUsersEl.textContent = userCountSlider.value;
+            totalTimeEl.textContent = testDurationInput.value + 's';
+            
+            // 事件监听
+            startBtn.addEventListener('click', startStressTest);
+            stopBtn.addEventListener('click', stopStressTest);
+            resetBtn.addEventListener('click', resetTestData);
+            testDurationInput.addEventListener('change', updateTotalTime);
+            
+            // 更新总时间显示
+            function updateTotalTime() {
+                totalTimeEl.textContent = testDurationInput.value + 's';
+            }
+        }
+        
+        // 生成UserAgent列表
+        function generateUserAgents() {
+            let agents = [];
+            
+            // 添加默认UserAgent
+            if (document.getElementById('desktop').checked) {
+                agents = agents.concat(defaultUserAgents.desktop);
+            }
+            if (document.getElementById('mobile').checked) {
+                agents = agents.concat(defaultUserAgents.mobile);
+            }
+            if (document.getElementById('tablet').checked) {
+                agents = agents.concat(defaultUserAgents.tablet);
+            }
+            
+            // 添加自定义UserAgent
+            const customAgents = customUserAgentsTextarea.value
+                .split('\n')
+                .map(agent => agent.trim())
+                .filter(agent => agent.length > 0);
+            
+            agents = agents.concat(customAgents);
+            
+            // 如果没有任何UserAgent被选中，使用所有桌面版
+            if (agents.length === 0) {
+                agents = defaultUserAgents.desktop;
+            }
+            
+            return agents;
+        }
+        
+        // 随机延迟函数
+        function getRandomDelay(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        // 随机选择UserAgent
+        function getRandomUserAgent(userAgents) {
+            const randomIndex = Math.floor(Math.random() * userAgents.length);
+            return userAgents[randomIndex];
+        }
+        
+        // 获取当前时间戳字符串
+        function getCurrentTimestamp() {
+            const now = new Date();
+            return now.toLocaleTimeString('zh-CN', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                fractionalSecondDigits: 3
+            });
+        }
+        
+        // 记录请求时间戳
+        function recordRequestTimestamp() {
+            const now = Date.now();
+            requestTimestamps.push(now);
+            
+            // 只保留最近5分钟的时间戳
+            const fiveMinutesAgo = now - 5 * 60 * 1000;
+            requestTimestamps = requestTimestamps.filter(timestamp => timestamp > fiveMinutesAgo);
+            
+            // 更新请求速率显示
+            updateRequestRate();
+        }
+        
+        // 更新请求速率显示
+        function updateRequestRate() {
+            const now = Date.now();
+            const oneMinuteAgo = now - 60 * 1000;
+            const recentRequests = requestTimestamps.filter(timestamp => timestamp > oneMinuteAgo);
+            const requestsPerMinute = recentRequests.length;
+            
+            // 更新图表占位符
+            requestsChart.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; color: #3498db; margin-bottom: 10px;">
+                        ${requestsPerMinute}
+                    </div>
+                    <p>当前请求速率: <strong>${requestsPerMinute} 请求/分钟</strong></p>
+                    <small>最近一分钟内完成的请求数</small>
+                </div>
+            `;
+        }
+        
+        // 模拟单个用户请求
+        async function simulateUser(userId, userAgents, minDelay, maxDelay, targetUrl, timeout) {
+            if (!isTesting) return;
+            
+            activeUsers++;
+            updateActiveUsers();
+            
+            try {
+                // 随机延迟
+                const delay = getRandomDelay(minDelay, maxDelay);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                
+                if (!isTesting) {
+                    activeUsers--;
+                    updateActiveUsers();
+                    return;
+                }
+                
+                // 随机选择UserAgent
+                const userAgent = getRandomUserAgent(userAgents);
+                
+                // 构建请求URL
+                let requestUrl = targetUrl;
+                const endpoint = apiEndpointSelect.value;
+                
+                if (endpoint !== '/') {
+                    requestUrl = targetUrl.replace(/\/$/, '') + endpoint;
+                    
+                    // 如果是带参数的端点，模拟一个随机短码
+                    if (endpoint.includes(':code')) {
+                        const shortCode = Math.random().toString(36).substring(2, 8);
+                        requestUrl = requestUrl.replace(':code', shortCode);
+                    }
+                    
+                    // 如果是POST端点，使用POST方法
+                    if (endpoint.includes('/api/shorten') || endpoint.includes('/api/batch')) {
+                        // 对于短链接生成器，可以模拟创建短链接的请求
+                        return simulatePostRequest(userId, userAgent, requestUrl, timeout);
+                    }
+                }
+                
+                // 发送GET请求
+                const startTime = performance.now();
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                
+                activeRequests.push(controller);
+                
+                const response = await fetch(requestUrl, {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': userAgent,
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    },
+                    mode: 'no-cors',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                // 移除已完成的请求控制器
+                const index = activeRequests.indexOf(controller);
+                if (index > -1) {
+                    activeRequests.splice(index, 1);
+                }
+                
+                // 记录成功
+                successCount++;
+                totalResponseTime += responseTime;
+                recordRequestTimestamp();
+                
+                // 添加结果到表格
+                addResultToTable(userId, 'success', responseTime, userAgent, '200 (no-cors)');
+                
+            } catch (error) {
+                // 记录错误
+                errorCount++;
+                recordRequestTimestamp();
+                
+                let errorType = 'Error';
+                if (error.name === 'AbortError') {
+                    errorType = 'Timeout';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorType = 'Network Error';
+                } else {
+                    errorType = error.name;
+                }
+                
+                addResultToTable(userId, 'error', 0, getRandomUserAgent(userAgents), errorType);
+            } finally {
+                activeUsers--;
+                updateActiveUsers();
+                updateStats();
+            }
+        }
+        
+        // 模拟POST请求（用于短链接生成API）
+        async function simulatePostRequest(userId, userAgent, requestUrl, timeout) {
+            const startTime = performance.now();
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            
+            activeRequests.push(controller);
+            
+            try {
+                // 模拟创建短链接的请求数据
+                const postData = {
+                    url: 'https://example.com/test-' + Math.random().toString(36).substring(2, 10),
+                    customCode: 'test' + Math.random().toString(36).substring(2, 6),
+                    expiresIn: Math.floor(Math.random() * 30)
+                };
+                
+                const response = await fetch(requestUrl, {
+                    method: 'POST',
+                    headers: {
+                        'User-Agent': userAgent,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    },
+                    body: JSON.stringify(postData),
+                    mode: 'no-cors',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                const endTime = performance.now();
+                const responseTime = Math.round(endTime - startTime);
+                
+                // 移除已完成的请求控制器
+                const index = activeRequests.indexOf(controller);
+                if (index > -1) {
+                    activeRequests.splice(index, 1);
+                }
+                
+                // 记录成功
+                successCount++;
+                totalResponseTime += responseTime;
+                recordRequestTimestamp();
+                
+                // 添加结果到表格
+                addResultToTable(userId, 'success', responseTime, userAgent, '200 (POST)');
+                
+            } catch (error) {
+                // 记录错误
+                errorCount++;
+                recordRequestTimestamp();
+                
+                let errorType = 'POST Error';
+                if (error.name === 'AbortError') {
+                    errorType = 'Timeout';
+                }
+                
+                addResultToTable(userId, 'error', 0, userAgent, errorType);
+            }
+        }
+        
+        // 添加结果到表格
+        function addResultToTable(userId, status, responseTime, userAgent, statusCode) {
+            const row = document.createElement('tr');
+            
+            const resultId = requestResults.length + 1;
+            const statusClass = status === 'success' ? 'status-success' : 'status-error';
+            const statusText = status === 'success' ? '成功' : '失败';
+            const timestamp = getCurrentTimestamp();
+            
+            // 截短过长的UserAgent
+            const shortUserAgent = userAgent.length > 40 ? 
+                userAgent.substring(0, 40) + '...' : userAgent;
+            
+            row.innerHTML = `
+                <td>${resultId}</td>
+                <td>用户 ${userId}</td>
+                <td><span class="status ${statusClass}">${statusText}</span></td>
+                <td>${responseTime}ms</td>
+                <td title="${userAgent}">${shortUserAgent}</td>
+                <td>${statusCode}</td>
+                <td>${timestamp}</td>
+            `;
+            
+            // 添加到表格顶部
+            if (resultsBody.firstChild) {
+                resultsBody.insertBefore(row, resultsBody.firstChild);
+            } else {
+                resultsBody.appendChild(row);
+            }
+            
+            requestResults.push({ 
+                userId, 
+                status, 
+                responseTime, 
+                userAgent, 
+                statusCode,
+                timestamp 
+            });
+            
+            // 限制表格最多显示200行
+            if (resultsBody.children.length > 200) {
+                resultsBody.removeChild(resultsBody.lastChild);
+            }
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            const totalRequests = successCount + errorCount;
+            successCountEl.textContent = successCount.toLocaleString();
+            errorCountEl.textContent = errorCount.toLocaleString();
+            totalRequestsEl.textContent = totalRequests.toLocaleString();
+            activeUsersEl.textContent = activeUsers;
+            
+            if (totalRequests > 0) {
+                const successRate = Math.round((successCount / totalRequests) * 100);
+                successRateEl.textContent = `${successRate}%`;
+                
+                if (successCount > 0) {
+                    const avgTime = Math.round(totalResponseTime / successCount);
+                    avgResponseTimeEl.textContent = `${avgTime}ms`;
+                }
+            }
+            
+            // 更新进度
+            if (testStartTime > 0) {
+                const elapsed = Date.now() - testStartTime;
+                const duration = parseInt(testDurationInput.value) * 1000;
+                const progress = Math.min(100, Math.round((elapsed / duration) * 100));
+                
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = `${progress}%`;
+                
+                // 更新已运行时间
+                const elapsedSeconds = Math.floor(elapsed / 1000);
+                elapsedTimeEl.textContent = `${elapsedSeconds}s`;
+            }
+        }
+        
+        // 更新活跃用户数
+        function updateActiveUsers() {
+            activeUsersEl.textContent = activeUsers;
+        }
+        
+        // 开始压力测试
+        async function startStressTest() {
+            if (isTesting) return;
+            
+            // 重置状态
+            isTesting = true;
+            activeUsers = 0;
+            successCount = 0;
+            errorCount = 0;
+            totalResponseTime = 0;
+            requestResults = [];
+            requestTimestamps = [];
+            activeRequests = [];
+            userTasks = [];
+            
+            // 清空结果表格
+            resultsBody.innerHTML = '';
+            
+            // 更新UI
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            resetBtn.disabled = true;
+            loadingIndicator.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+            elapsedTimeEl.textContent = '0s';
+            
+            // 获取配置
+            const userCount = parseInt(userCountSlider.value);
+            const targetUrl = targetUrlInput.value.trim();
+            const duration = parseInt(testDurationInput.value) * 1000;
+            const minDelay = parseInt(minDelayInput.value);
+            const maxDelay = parseInt(maxDelayInput.value);
+            const timeout = parseInt(timeoutInput.value);
+            const batchSize = parseInt(batchSizeInput.value) || 10;
+            
+            // 验证URL
+            if (!targetUrl || !targetUrl.startsWith('http')) {
+                alert('请输入有效的URL地址（以http://或https://开头）');
+                stopStressTest();
+                return;
+            }
+            
+            // 验证延迟范围
+            if (minDelay >= maxDelay) {
+                alert('最小延迟必须小于最大延迟');
+                stopStressTest();
+                return;
+            }
+            
+            // 生成UserAgent列表
+            const userAgents = generateUserAgents();
+            
+            // 记录测试开始时间
+            testStartTime = Date.now();
+            
+            // 启动进度更新
+            progressInterval = setInterval(updateStats, 500);
+            
+            // 分批启动虚拟用户
+            const totalBatches = Math.ceil(userCount / batchSize);
+            
+            for (let batch = 0; batch < totalBatches; batch++) {
+                if (!isTesting) break;
+                
+                const batchStart = batch * batchSize;
+                const batchEnd = Math.min(batchStart + batchSize, userCount);
+                const batchSizeActual = batchEnd - batchStart;
+                
+                console.log(`启动批次 ${batch + 1}/${totalBatches}, 用户 ${batchStart + 1}-${batchEnd}`);
+                
+                // 启动当前批次的所有用户
+                for (let i = batchStart; i < batchEnd; i++) {
+                    if (!isTesting) break;
+                    
+                    const userId = i + 1;
+                    const userTask = (async () => {
+                        while (isTesting && Date.now() - testStartTime < duration) {
+                            await simulateUser(userId, userAgents, minDelay, maxDelay, targetUrl, timeout);
+                        }
+                    })();
+                    
+                    userTasks.push(userTask);
+                }
+                
+                // 批次间延迟，避免同时启动过多用户导致浏览器卡顿
+                if (batch < totalBatches - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            
+            // 设置测试结束时间
+            testTimeout = setTimeout(() => {
+                stopStressTest();
+            }, duration);
+        }
+        
+        // 停止压力测试
+        function stopStressTest() {
+            isTesting = false;
+            
+            // 清除定时器
+            if (testTimeout) {
+                clearTimeout(testTimeout);
+                testTimeout = null;
+            }
+            
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            
+            // 中止所有进行中的请求
+            activeRequests.forEach(controller => {
+                controller.abort();
+            });
+            activeRequests = [];
+            
+            // 更新UI
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            resetBtn.disabled = false;
+            loadingIndicator.style.display = 'none';
+            
+            // 显示最终统计
+            const totalRequests = successCount + errorCount;
+            const successRate = totalRequests > 0 ? 
+                Math.round((successCount / totalRequests) * 100) : 0;
+            
+            const avgTime = successCount > 0 ? 
+                Math.round(totalResponseTime / successCount) : 0;
+            
+            // 添加测试总结
+            const summaryRow = document.createElement('tr');
+            summaryRow.style.backgroundColor = '#f8f9fa';
+            summaryRow.style.fontWeight = 'bold';
+            summaryRow.innerHTML = `
+                <td colspan="7" style="text-align: center; padding: 15px;">
+                    <i class="fas fa-flag-checkered"></i> 压力测试结束 | 
+                    总请求数: ${totalRequests.toLocaleString()} | 
+                    成功: ${successCount.toLocaleString()} | 
+                    失败: ${errorCount.toLocaleString()} | 
+                    成功率: ${successRate}% | 
+                    平均响应时间: ${avgTime}ms | 
+                    最大并发用户: ${parseInt(userCountSlider.value)}
+                </td>
+            `;
+            
+            if (resultsBody.firstChild) {
+                resultsBody.insertBefore(summaryRow, resultsBody.firstChild);
+            } else {
+                resultsBody.appendChild(summaryRow);
+            }
+            
+            // 显示完成通知
+            alert(`压力测试完成！\n\n总请求数: ${totalRequests.toLocaleString()}\n成功率: ${successRate}%\n平均响应时间: ${avgTime}ms`);
+        }
+        
+        // 重置测试数据
+        function resetTestData() {
+            isTesting = false;
+            activeUsers = 0;
+            successCount = 0;
+            errorCount = 0;
+            totalResponseTime = 0;
+            requestResults = [];
+            requestTimestamps = [];
+            activeRequests = [];
+            userTasks = [];
+            
+            // 清除定时器
+            if (testTimeout) {
+                clearTimeout(testTimeout);
+                testTimeout = null;
+            }
+            
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            
+            // 更新UI
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            resetBtn.disabled = false;
+            loadingIndicator.style.display = 'none';
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+            elapsedTimeEl.textContent = '0s';
+            
+            // 清空结果表格
+            resultsBody.innerHTML = '';
+            
+            // 重置统计显示
+            successCountEl.textContent = '0';
+            errorCountEl.textContent = '0';
+            avgResponseTimeEl.textContent = '0ms';
+            activeUsersEl.textContent = '0';
+            successRateEl.textContent = '0%';
+            totalRequestsEl.textContent = '0';
+            
+            // 重置图表显示
+            requestsChart.innerHTML = `
+                <div style="text-align: center;">
+                    <i class="fas fa-chart-line" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                    <p>测试开始后显示实时请求速率图表</p>
+                </div>
+            `;
+        }
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                if (!isTesting) {
+                    startStressTest();
+                } else {
+                    stopStressTest();
+                }
+            } else if (e.key === 'Escape' && isTesting) {
+                stopStressTest();
+            } else if (e.key === 'r' && e.ctrlKey && !isTesting) {
+                resetTestData();
+            }
+        });
+        
+        // 页面卸载时停止测试
+        window.addEventListener('beforeunload', () => {
+            if (isTesting) {
+                stopStressTest();
+            }
+        });
+        
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>

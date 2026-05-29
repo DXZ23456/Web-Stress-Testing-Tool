@@ -83,7 +83,7 @@ This is a powerful web stress testing tool specifically designed to test the per
 **Disclaimer:** The tool developer is not responsible for any illegal use by users. Users are solely responsible for all consequences of using this tool.
 
 # 重点/important
-
+## 中文（Chinese）
 <p align="center">
   <b style="color:red; font-size:22px;">
     禁止用于违规目的！本开发者不承担任何使用者损失！
@@ -99,5 +99,23 @@ This is a powerful web stress testing tool specifically designed to test the per
 <p align="center">
   <b style="color:red; font-size:18px;">
     采用 GPL-3.0 开源协议
+  </b>
+</p>
+## 英语（English）
+<p align="center">
+  <b style="color:red; font-size:22px;">
+    Prohibited for illegal purposes! The developer assumes no liability for any user losses!
+  </b>
+</p>
+
+<p align="center">
+  <b style="color:red; font-size:20px;">
+    Please comply with local laws and regulations!
+  </b>
+</p>
+
+<p align="center">
+  <b style="color:red; font-size:18px;">
+    Licensed under the GPL-3.0 open source license
   </b>
 </p>

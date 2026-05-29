@@ -101,7 +101,7 @@ This is a powerful web stress testing tool specifically designed to test the per
     采用 GPL-3.0 开源协议
   </b>
 </p>
-## 英语（English）
+### 英语（English）
 <p align="center">
   <b style="color:red; font-size:22px;">
     Prohibited for illegal purposes! The developer assumes no liability for any user losses!

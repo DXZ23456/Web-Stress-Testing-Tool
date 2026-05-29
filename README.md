@@ -80,9 +80,20 @@ This is a powerful web stress testing tool specifically designed to test the per
 
 **Disclaimer:** The tool developer is not responsible for any illegal use by users. Users are solely responsible for all consequences of using this tool.
 
+<p align="center">
+  <b style="color:red; font-size:22px;">
+    禁止用于违规目的！本开发者不承担任何使用者损失！
+  </b>
+</p>
 
-# 禁止用于违规目的！本开发者不承担任何使用者损失！
+<p align="center">
+  <b style="color:red; font-size:20px;">
+    请遵守当地法律法规！
+  </b>
+</p>
 
-# 请遵守当地法律法规！
-
-# 采用GPL-3！
+<p align="center">
+  <b style="color:red; font-size:18px;">
+    采用 GPL-3.0 开源协议
+  </b>
+</p>

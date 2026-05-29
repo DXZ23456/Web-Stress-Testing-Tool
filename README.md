@@ -80,6 +80,8 @@ This is a powerful web stress testing tool specifically designed to test the per
 
 **Disclaimer:** The tool developer is not responsible for any illegal use by users. Users are solely responsible for all consequences of using this tool.
 
+# 重点/important
+
 <p align="center">
   <b style="color:red; font-size:22px;">
     禁止用于违规目的！本开发者不承担任何使用者损失！

@@ -83,4 +83,6 @@ This is a powerful web stress testing tool specifically designed to test the per
 
 # 禁止用于违规目的！本开发者不承担任何使用者损失！
 
-# 请遵守当地法律法规
+# 请遵守当地法律法规！
+
+# 采用GPL3！
